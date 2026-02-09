@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
-import { LotteryCard } from '@/components/betting/LotteryCard';
-import { BettingForm } from '@/components/betting/BettingForm';
-import { BetCart, CartItem } from '@/components/betting/BetCart';
+import { NewBettingInterface } from '@/components/betting/NewBettingInterface';
+import { CartItem } from '@/components/betting/BetCart';
 import { useLotteries } from '@/hooks/useLotteries';
 import { useWallet } from '@/hooks/useWallet';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,7 +10,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dice5, Trophy, Clock, ArrowRight } from 'lucide-react';
+import { Dice5, Trophy, Clock, ArrowRight, ArrowLeft } from 'lucide-react';
+import { format, formatDistanceToNow, isPast } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 export default function Index() {
   const { user } = useAuth();
@@ -28,10 +29,6 @@ export default function Index() {
 
   const handleAddToCart = (item: CartItem) => {
     setCartItems(prev => [...prev, item]);
-    toast({
-      title: 'Added to Cart',
-      description: `${item.betType} digit bet on ${item.number} added`,
-    });
   };
 
   const handleRemoveFromCart = (id: string) => {
@@ -46,7 +43,6 @@ export default function Index() {
     try {
       const totalAmount = cartItems.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
       
-      // Check wallet balance
       if (totalAmount > balance) {
         toast({
           variant: 'destructive',
@@ -56,7 +52,6 @@ export default function Index() {
         return;
       }
 
-      // Create bets
       const betsToInsert = cartItems.map(item => ({
         user_id: user.id,
         lottery_id: selectedLottery.id,
@@ -76,7 +71,6 @@ export default function Index() {
 
       if (betsError) throw betsError;
 
-      // Deduct from wallet
       const { error: walletError } = await supabase
         .from('wallets')
         .update({ balance: balance - totalAmount })
@@ -84,7 +78,6 @@ export default function Index() {
 
       if (walletError) throw walletError;
 
-      // Create transaction record
       const { error: txError } = await supabase
         .from('transactions')
         .insert({
@@ -159,60 +152,103 @@ export default function Index() {
     );
   }
 
+  // Show betting interface when a lottery is selected
+  if (selectedLottery) {
+    return (
+      <Layout>
+        <div className="container py-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSelectedLotteryId(null);
+              setCartItems([]);
+            }}
+            className="mb-4 gap-1"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Dashboard
+          </Button>
+
+          <NewBettingInterface
+            lottery={selectedLottery}
+            cartItems={cartItems}
+            onAddToCart={handleAddToCart}
+            onRemoveFromCart={handleRemoveFromCart}
+            onCheckout={handleCheckout}
+            isCheckingOut={isPlacingBets}
+            walletBalance={Number(balance)}
+          />
+        </div>
+      </Layout>
+    );
+  }
+
+  // Dashboard - Lottery selection grid
   return (
     <Layout>
       <div className="container py-6">
-        <h1 className="text-2xl font-bold mb-6">Available Lotteries</h1>
+        <h1 className="text-2xl font-bold mb-6">Today's Lotteries</h1>
 
-        {/* Lottery Selection */}
         {lotteriesLoading ? (
-          <div className="space-y-3 mb-8">
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-24 w-full" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map(i => (
+              <Skeleton key={i} className="h-32 w-full rounded-xl" />
+            ))}
           </div>
         ) : lotteries.length === 0 ? (
-          <div className="text-center py-12 bg-muted/50 rounded-xl mb-8">
+          <div className="text-center py-12 bg-muted/50 rounded-xl">
             <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
             <h3 className="text-lg font-semibold">No Active Lotteries</h3>
             <p className="text-muted-foreground">Check back later for upcoming draws.</p>
           </div>
         ) : (
-          <div className="space-y-3 mb-8">
-            {lotteries.map(lottery => (
-              <LotteryCard
-                key={lottery.id}
-                id={lottery.id}
-                name={lottery.name}
-                description={lottery.description}
-                drawTime={lottery.draw_time}
-                singleDigitPrice={Number(lottery.single_digit_price)}
-                doubleDigitPrice={Number(lottery.double_digit_price)}
-                tripleDigitPrice={Number(lottery.triple_digit_price)}
-                onSelect={setSelectedLotteryId}
-                isSelected={selectedLotteryId === lottery.id}
-              />
-            ))}
-          </div>
-        )}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {lotteries.map(lottery => {
+              const drawDate = new Date(lottery.draw_time);
+              const isExpired = isPast(drawDate);
+              const timeLeft = formatDistanceToNow(drawDate, { addSuffix: false });
 
-        {/* Betting Interface */}
-        {selectedLottery && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <BettingForm
-                lottery={selectedLottery}
-                onAddToCart={handleAddToCart}
-              />
-            </div>
-            <div>
-              <BetCart
-                items={cartItems}
-                onRemoveItem={handleRemoveFromCart}
-                onCheckout={handleCheckout}
-                isLoading={isPlacingBets}
-                walletBalance={Number(balance)}
-              />
-            </div>
+              return (
+                <button
+                  key={lottery.id}
+                  onClick={() => !isExpired && setSelectedLotteryId(lottery.id)}
+                  disabled={isExpired}
+                  className={cn(
+                    "relative p-4 rounded-xl border-2 text-left transition-all",
+                    "bg-gradient-to-br from-primary/5 to-primary/10",
+                    "hover:shadow-lg hover:border-primary/50 hover:scale-[1.02]",
+                    isExpired && "opacity-50 cursor-not-allowed",
+                    !isExpired && "cursor-pointer"
+                  )}
+                >
+                  <div className="flex flex-col h-full">
+                    <h3 className="font-bold text-lg mb-1">{lottery.name}</h3>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Cutoff: {format(drawDate, 'h:mm a')}
+                    </p>
+                    
+                    {isExpired ? (
+                      <span className="text-xs text-destructive font-medium">Closed</span>
+                    ) : (
+                      <span className="text-xs text-success font-medium">
+                        {timeLeft} left
+                      </span>
+                    )}
+
+                    <div className="mt-auto pt-3">
+                      <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                        ₹{Number(lottery.single_digit_price)}/bet
+                      </span>
+                    </div>
+                  </div>
+
+                  {!isExpired && (
+                    <ArrowRight className="absolute top-4 right-4 w-5 h-5 text-primary" />
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
