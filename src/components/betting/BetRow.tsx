@@ -1,7 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Plus, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
 interface BetRowProps {
@@ -14,12 +13,24 @@ interface BetRowProps {
 export function BetRow({ positions, digitCount, onAdd, positionColors }: BetRowProps) {
   const [digits, setDigits] = useState<string[]>(Array(digitCount).fill(''));
   const [quantity, setQuantity] = useState(3);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleDigitChange = (index: number, value: string) => {
     const sanitized = value.replace(/[^0-9]/g, '').slice(0, 1);
     const newDigits = [...digits];
     newDigits[index] = sanitized;
     setDigits(newDigits);
+
+    // Auto-focus next input
+    if (sanitized && index < digitCount - 1) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !digits[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
   };
 
   const handleAdd = () => {
@@ -28,22 +39,23 @@ export function BetRow({ positions, digitCount, onAdd, positionColors }: BetRowP
       onAdd(number, quantity);
       setDigits(Array(digitCount).fill(''));
       setQuantity(3);
+      inputRefs.current[0]?.focus();
     }
   };
 
   const isComplete = digits.every(d => d !== '');
-
   const defaultColors = ['bg-lottery-single', 'bg-lottery-double', 'bg-lottery-triple'];
   const colors = positionColors || defaultColors;
 
   return (
-    <div className="flex items-center gap-2 py-2">
-      <div className="flex gap-1 shrink-0">
+    <div className="flex items-center gap-2 py-1.5">
+      {/* Position badges */}
+      <div className="flex gap-0.5 shrink-0">
         {positions.map((pos, idx) => (
           <div
             key={pos}
             className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm",
+              "w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-xs",
               colors[idx] || colors[0]
             )}
           >
@@ -52,46 +64,51 @@ export function BetRow({ positions, digitCount, onAdd, positionColors }: BetRowP
         ))}
       </div>
 
-      <div className="flex gap-1 flex-1">
+      {/* Digit inputs */}
+      <div className="flex gap-1.5 flex-1">
         {digits.map((digit, idx) => (
-          <Input
+          <input
             key={idx}
+            ref={el => { inputRefs.current[idx] = el; }}
             type="text"
             inputMode="numeric"
             value={digit}
             onChange={(e) => handleDigitChange(idx, e.target.value)}
-            className="w-10 h-10 text-center text-lg font-semibold p-0"
+            onKeyDown={(e) => handleKeyDown(idx, e)}
+            className="digit-input"
             maxLength={1}
-            placeholder="-"
+            placeholder="·"
           />
         ))}
       </div>
 
-      <div className="flex items-center gap-1 shrink-0">
+      {/* Quantity */}
+      <div className="flex items-center gap-0.5 shrink-0">
         <Button
           variant="outline"
           size="icon"
-          className="h-8 w-8"
+          className="h-8 w-8 rounded-lg"
           onClick={() => setQuantity(Math.max(1, quantity - 1))}
         >
-          <Minus className="w-4 h-4" />
+          <Minus className="w-3.5 h-3.5" />
         </Button>
-        <span className="w-6 text-center font-semibold">{quantity}</span>
+        <span className="w-7 text-center font-bold text-sm">{quantity}</span>
         <Button
           variant="outline"
           size="icon"
-          className="h-8 w-8"
+          className="h-8 w-8 rounded-lg"
           onClick={() => setQuantity(quantity + 1)}
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-3.5 h-3.5" />
         </Button>
       </div>
 
+      {/* Add button */}
       <Button
         onClick={handleAdd}
         disabled={!isComplete}
-        className="shrink-0 bg-primary/20 text-primary hover:bg-primary hover:text-primary-foreground"
         size="sm"
+        className="shrink-0 rounded-xl h-9 px-4 font-bold"
       >
         Add
       </Button>
