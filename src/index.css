@@ -2,14 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-/* RASI Game Platform - Design System
-   Coral/Pink accent theme with clean white background
+/* RASI Game Platform - 2026 Design System
+   Coral/Pink accent, glassmorphism, mobile-first
    All colors MUST be HSL.
 */
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
+    --background: 0 0% 97%;
     --foreground: 240 10% 10%;
 
     --card: 0 0% 100%;
@@ -43,11 +43,11 @@
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 214 30% 90%;
-    --input: 214 30% 90%;
+    --border: 214 30% 91%;
+    --input: 214 30% 91%;
     --ring: 350 80% 55%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
     /* Sidebar */
     --sidebar-background: 0 0% 100%;
@@ -67,13 +67,13 @@
   }
 
   .dark {
-    --background: 240 10% 8%;
+    --background: 240 10% 6%;
     --foreground: 0 0% 95%;
 
-    --card: 240 10% 12%;
+    --card: 240 10% 10%;
     --card-foreground: 0 0% 95%;
 
-    --popover: 240 10% 12%;
+    --popover: 240 10% 10%;
     --popover-foreground: 0 0% 95%;
 
     --primary: 350 80% 60%;
@@ -82,7 +82,7 @@
     --secondary: 350 30% 15%;
     --secondary-foreground: 350 80% 85%;
 
-    --muted: 240 10% 18%;
+    --muted: 240 10% 16%;
     --muted-foreground: 215 15% 65%;
 
     --accent: 350 80% 60%;
@@ -97,17 +97,17 @@
     --warning: 38 85% 55%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 240 10% 20%;
-    --input: 240 10% 20%;
+    --border: 240 10% 18%;
+    --input: 240 10% 18%;
     --ring: 350 80% 60%;
 
-    --sidebar-background: 240 10% 10%;
+    --sidebar-background: 240 10% 8%;
     --sidebar-foreground: 0 0% 90%;
     --sidebar-primary: 350 80% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 350 30% 15%;
     --sidebar-accent-foreground: 350 80% 85%;
-    --sidebar-border: 240 10% 20%;
+    --sidebar-border: 240 10% 18%;
     --sidebar-ring: 350 80% 60%;
 
     --lottery-single: 200 75% 55%;
@@ -124,6 +124,17 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+  }
+
+  /* Hide scrollbar but allow scrolling */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 
@@ -131,4 +142,75 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  .glass {
+    @apply bg-card/80 backdrop-blur-xl border border-border/50;
+  }
+
+  .glass-strong {
+    @apply bg-card/95 backdrop-blur-2xl border border-border/60;
+  }
+
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 1rem);
+  }
+
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
+@layer components {
+  /* Floating action button */
+  .fab {
+    @apply fixed z-40 shadow-2xl rounded-full;
+    box-shadow: 0 8px 32px hsl(var(--primary) / 0.35);
+  }
+
+  /* Lottery card hover */
+  .lottery-card {
+    @apply relative overflow-hidden rounded-2xl border bg-card transition-all duration-300;
+  }
+  .lottery-card:active {
+    transform: scale(0.97);
+  }
+
+  /* Pill badge */
+  .pill {
+    @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold;
+  }
+
+  /* Number input for bets */
+  .digit-input {
+    @apply w-12 h-14 text-center text-xl font-bold rounded-xl border-2 border-border bg-background
+           focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all;
+  }
+}
+
+/* Animations */
+@keyframes slide-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
 }
