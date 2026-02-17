@@ -9,7 +9,7 @@ export function useLotteries() {
         .from('lotteries')
         .select('*')
         .eq('is_active', true)
-        .gte('draw_time', new Date().toISOString())
+        .gte('draw_time', new Date(new Date().setHours(0, 0, 0, 0)).toISOString())
         .order('draw_time', { ascending: true });
 
       if (error) throw error;
