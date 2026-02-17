@@ -1,12 +1,11 @@
 import { Layout } from '@/components/layout/Layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { History, Trophy, Clock, XCircle, Loader2 } from 'lucide-react';
+import { Trophy, Clock, XCircle, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function BetHistory() {
@@ -18,10 +17,7 @@ export default function BetHistory() {
       if (!user) return [];
       const { data, error } = await supabase
         .from('bets')
-        .select(`
-          *,
-          lotteries:lottery_id (name)
-        `)
+        .select(`*, lotteries:lottery_id (name)`)
         .eq('user_id', user.id)
         .order('placed_at', { ascending: false });
       if (error) throw error;
@@ -36,14 +32,10 @@ export default function BetHistory() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pending':
-        return <Badge variant="outline" className="gap-1"><Clock className="w-3 h-3" /> Pending</Badge>;
-      case 'won':
-        return <Badge className="bg-success gap-1"><Trophy className="w-3 h-3" /> Won</Badge>;
-      case 'lost':
-        return <Badge variant="secondary" className="gap-1"><XCircle className="w-3 h-3" /> Lost</Badge>;
-      default:
-        return <Badge>{status}</Badge>;
+      case 'pending': return <Badge variant="outline" className="gap-1 text-[10px]"><Clock className="w-3 h-3" /> Pending</Badge>;
+      case 'won': return <Badge className="bg-success gap-1 text-[10px]"><Trophy className="w-3 h-3" /> Won</Badge>;
+      case 'lost': return <Badge variant="secondary" className="gap-1 text-[10px]"><XCircle className="w-3 h-3" /> Lost</Badge>;
+      default: return <Badge>{status}</Badge>;
     }
   };
 
@@ -57,52 +49,44 @@ export default function BetHistory() {
   };
 
   const BetList = ({ bets }: { bets: typeof pendingBets }) => (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {bets.length === 0 ? (
-        <p className="text-center text-muted-foreground py-8">No bets found</p>
+        <p className="text-center text-muted-foreground py-12 text-sm">No bets found</p>
       ) : (
         bets.map((bet) => (
-          <Card key={bet.id}>
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Badge className={cn("text-white", getBetTypeColor(bet.bet_type))}>
-                      {bet.bet_type.charAt(0).toUpperCase() + bet.bet_type.slice(1)}
-                    </Badge>
-                    {getStatusBadge(bet.status)}
-                    {bet.is_box && <Badge variant="outline" className="text-lottery-box border-lottery-box">BOX</Badge>}
-                  </div>
-                  <p className="font-semibold text-lg">
-                    {bet.position && `${bet.position}: `}
-                    {bet.selected_number}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {bet.lotteries?.name} • {bet.quantity}x ₹{Number(bet.unit_price).toFixed(2)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {format(new Date(bet.placed_at), 'MMM d, yyyy h:mm a')}
-                  </p>
+          <div key={bet.id} className="bg-card rounded-2xl border p-4 animate-fade-in">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+                  <Badge className={cn("text-white text-[10px]", getBetTypeColor(bet.bet_type))}>
+                    {bet.bet_type.charAt(0).toUpperCase() + bet.bet_type.slice(1)}
+                  </Badge>
+                  {getStatusBadge(bet.status)}
+                  {bet.is_box && <Badge variant="outline" className="text-lottery-box border-lottery-box text-[10px]">BOX</Badge>}
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Bet Amount</p>
-                  <p className="font-semibold">₹{Number(bet.total_amount).toFixed(2)}</p>
-                  {bet.status === 'won' && bet.win_amount && (
-                    <>
-                      <p className="text-sm text-success mt-1">Won</p>
-                      <p className="font-bold text-success">₹{Number(bet.win_amount).toFixed(2)}</p>
-                    </>
-                  )}
-                  {bet.status === 'pending' && (
-                    <>
-                      <p className="text-sm text-muted-foreground mt-1">Potential Win</p>
-                      <p className="font-semibold text-primary">₹{Number(bet.potential_win_amount).toFixed(2)}</p>
-                    </>
-                  )}
-                </div>
+                <p className="font-bold text-lg tabular-nums">
+                  {bet.position && <span className="text-muted-foreground text-sm font-medium">{bet.position}: </span>}
+                  {bet.selected_number}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {bet.lotteries?.name} · {bet.quantity}× ₹{Number(bet.unit_price)}
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  {format(new Date(bet.placed_at), 'MMM d, h:mm a')}
+                </p>
               </div>
-            </CardContent>
-          </Card>
+              <div className="text-right shrink-0">
+                <p className="text-xs text-muted-foreground">Amount</p>
+                <p className="font-bold">₹{Number(bet.total_amount)}</p>
+                {bet.status === 'won' && bet.win_amount && (
+                  <p className="font-bold text-success text-sm mt-1">+₹{Number(bet.win_amount)}</p>
+                )}
+                {bet.status === 'pending' && (
+                  <p className="text-xs text-primary mt-1">Win ₹{Number(bet.potential_win_amount)}</p>
+                )}
+              </div>
+            </div>
+          </div>
         ))
       )}
     </div>
@@ -111,7 +95,7 @@ export default function BetHistory() {
   if (isLoading) {
     return (
       <Layout>
-        <div className="container py-6 flex justify-center items-center min-h-[50vh]">
+        <div className="flex justify-center items-center min-h-[60vh]">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       </Layout>
@@ -120,54 +104,38 @@ export default function BetHistory() {
 
   return (
     <Layout>
-      <div className="container py-6 max-w-4xl">
-        <div className="flex items-center gap-2 mb-6">
-          <History className="w-6 h-6" />
-          <h1 className="text-2xl font-bold">Bet History</h1>
+      <div className="px-4 py-5 pb-24">
+        <h1 className="text-2xl font-extrabold tracking-tight mb-1">Bet History</h1>
+        <p className="text-sm text-muted-foreground mb-5">Track all your bets</p>
+
+        {/* Summary */}
+        <div className="grid grid-cols-3 gap-2.5 mb-5">
+          <div className="bg-card rounded-2xl border p-3 text-center">
+            <p className="text-xl font-bold">{pendingBets.length}</p>
+            <p className="text-[10px] text-muted-foreground font-medium">Pending</p>
+          </div>
+          <div className="bg-success/10 rounded-2xl border border-success/20 p-3 text-center">
+            <p className="text-xl font-bold text-success">{wonBets.length}</p>
+            <p className="text-[10px] text-muted-foreground font-medium">Won</p>
+          </div>
+          <div className="bg-card rounded-2xl border p-3 text-center">
+            <p className="text-xl font-bold text-muted-foreground">{lostBets.length}</p>
+            <p className="text-[10px] text-muted-foreground font-medium">Lost</p>
+          </div>
         </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold">{pendingBets.length}</p>
-              <p className="text-sm text-muted-foreground">Pending</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-success/10 border-success/30">
-            <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold text-success">{wonBets.length}</p>
-              <p className="text-sm text-muted-foreground">Won</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold text-muted-foreground">{lostBets.length}</p>
-              <p className="text-sm text-muted-foreground">Lost</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Tabs defaultValue="all" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="all">All ({bets?.length || 0})</TabsTrigger>
-            <TabsTrigger value="pending">Pending</TabsTrigger>
-            <TabsTrigger value="won">Won</TabsTrigger>
-            <TabsTrigger value="lost">Lost</TabsTrigger>
+        <Tabs defaultValue="all" className="space-y-3">
+          <TabsList className="grid w-full grid-cols-4 h-10 rounded-xl">
+            <TabsTrigger value="all" className="rounded-lg text-xs">All</TabsTrigger>
+            <TabsTrigger value="pending" className="rounded-lg text-xs">Pending</TabsTrigger>
+            <TabsTrigger value="won" className="rounded-lg text-xs">Won</TabsTrigger>
+            <TabsTrigger value="lost" className="rounded-lg text-xs">Lost</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="all">
-            <BetList bets={bets || []} />
-          </TabsContent>
-          <TabsContent value="pending">
-            <BetList bets={pendingBets} />
-          </TabsContent>
-          <TabsContent value="won">
-            <BetList bets={wonBets} />
-          </TabsContent>
-          <TabsContent value="lost">
-            <BetList bets={lostBets} />
-          </TabsContent>
+          <TabsContent value="all"><BetList bets={bets || []} /></TabsContent>
+          <TabsContent value="pending"><BetList bets={pendingBets} /></TabsContent>
+          <TabsContent value="won"><BetList bets={wonBets} /></TabsContent>
+          <TabsContent value="lost"><BetList bets={lostBets} /></TabsContent>
         </Tabs>
       </div>
     </Layout>

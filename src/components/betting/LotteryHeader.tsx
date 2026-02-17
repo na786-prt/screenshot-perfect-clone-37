@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { format, differenceInSeconds } from 'date-fns';
-import { Timer } from 'lucide-react';
+import { Timer, Zap } from 'lucide-react';
 
 interface LotteryHeaderProps {
   name: string;
@@ -27,25 +27,36 @@ export function LotteryHeader({ name, drawTime }: LotteryHeaderProps) {
   }, [drawDate]);
 
   const pad = (n: number) => n.toString().padStart(2, '0');
+  const isExpired = timeLeft.hours === 0 && timeLeft.minutes === 0 && timeLeft.seconds === 0;
 
   return (
-    <div className="bg-gradient-to-br from-primary/10 via-secondary to-secondary/50 rounded-2xl p-4 mb-4">
+    <div className="gradient-primary rounded-2xl p-4 mb-4 text-primary-foreground shadow-glow">
       <div className="flex items-center justify-between">
         <div>
+          <div className="flex items-center gap-1.5 mb-1">
+            <Zap className="w-4 h-4" />
+            <span className="text-xs font-medium opacity-80">LIVE DRAW</span>
+          </div>
           <h2 className="font-extrabold text-xl tracking-tight">{name}</h2>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <p className="text-sm opacity-80 mt-0.5">
             Draw at {format(drawDate, 'h:mm a')}
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-foreground/5 rounded-xl px-3 py-2">
-          <Timer className="w-4 h-4 text-primary" />
+        <div className="flex items-center gap-2 bg-white/15 backdrop-blur-sm rounded-xl px-3 py-2">
+          <Timer className="w-4 h-4 opacity-80" />
           <div className="flex items-center gap-0.5 font-mono font-bold text-lg tabular-nums">
-            <span>{pad(timeLeft.hours)}</span>
-            <span className="text-primary animate-pulse-soft">:</span>
-            <span>{pad(timeLeft.minutes)}</span>
-            <span className="text-primary animate-pulse-soft">:</span>
-            <span>{pad(timeLeft.seconds)}</span>
+            {isExpired ? (
+              <span className="text-sm font-semibold">Ended</span>
+            ) : (
+              <>
+                <span>{pad(timeLeft.hours)}</span>
+                <span className="animate-pulse-soft">:</span>
+                <span>{pad(timeLeft.minutes)}</span>
+                <span className="animate-pulse-soft">:</span>
+                <span>{pad(timeLeft.seconds)}</span>
+              </>
+            )}
           </div>
         </div>
       </div>

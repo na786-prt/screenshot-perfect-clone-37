@@ -25,7 +25,7 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full glass-strong safe-top">
       <div className="flex h-14 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2.5">
-          <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/25">
+          <div className="w-9 h-9 gradient-primary rounded-xl flex items-center justify-center shadow-glow">
             <Dice5 className="w-5 h-5 text-primary-foreground" />
           </div>
           <span className="font-extrabold text-lg tracking-tight">RASI</span>
@@ -34,7 +34,7 @@ export function Header() {
         {user ? (
           <div className="flex items-center gap-2">
             <Link to="/wallet">
-              <Button variant="secondary" size="sm" className="gap-1.5 h-9 rounded-full px-3 font-bold text-sm">
+              <Button variant="secondary" size="sm" className="gap-1.5 h-9 rounded-full px-3.5 font-bold text-sm border">
                 <Wallet className="w-4 h-4" />
                 ₹{Number(balance).toFixed(0)}
               </Button>
@@ -68,7 +68,7 @@ export function Header() {
           </div>
         ) : (
           <Link to="/auth">
-            <Button size="sm" className="rounded-full h-9 px-5">Sign In</Button>
+            <Button size="sm" className="rounded-full h-9 px-5 font-bold">Sign In</Button>
           </Link>
         )}
       </div>

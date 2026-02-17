@@ -26,21 +26,21 @@ export function BetSection({ title, price, winAmount, rows, digitCount, onAdd, s
   };
 
   return (
-    <div className="bg-card rounded-2xl p-4 border mb-3">
+    <div className="section-card">
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <h3 className="font-bold text-base">{title}</h3>
           <Badge variant="outline" className="bg-success/10 text-success border-success/30 text-xs rounded-lg">
             Win ₹{winAmount.toLocaleString()}
           </Badge>
         </div>
-        <Button variant="ghost" size="sm" onClick={handleQuickGuess} className="gap-1 h-8 text-xs text-primary">
+        <Button variant="ghost" size="sm" onClick={handleQuickGuess} className="gap-1.5 h-9 text-xs text-primary rounded-xl touch-target">
           <Shuffle className="w-3.5 h-3.5" />
           Random
         </Button>
       </div>
 
-      <p className="text-xs text-muted-foreground mb-2">₹{price} per bet</p>
+      <p className="text-xs text-muted-foreground mb-3">₹{price} per bet</p>
 
       <div className="space-y-0.5">
         {rows.map((row, idx) => (
@@ -82,7 +82,7 @@ function TripleBoxRow({ onAdd }: { onAdd: (number: string, quantity: number) => 
     }
   };
 
-  const handleAdd = (isBox: boolean) => {
+  const handleAdd = () => {
     const number = digits.join('');
     if (number.length === 3) {
       onAdd(number, quantity);
@@ -94,20 +94,21 @@ function TripleBoxRow({ onAdd }: { onAdd: (number: string, quantity: number) => 
   const isComplete = digits.every(d => d !== '');
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 py-1">
       <div className="flex gap-0.5 shrink-0">
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-xs bg-lottery-single">A</div>
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-xs bg-lottery-double">B</div>
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-xs bg-lottery-triple">C</div>
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-xs bg-lottery-single touch-target">A</div>
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-xs bg-lottery-double touch-target">B</div>
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-xs bg-lottery-triple touch-target">C</div>
       </div>
 
-      <div className="flex gap-1.5 flex-1">
+      <div className="flex gap-1.5 flex-1 justify-center">
         {digits.map((digit, idx) => (
           <input
             key={idx}
             ref={el => { inputRefs.current[idx] = el; }}
             type="text"
             inputMode="numeric"
+            pattern="[0-9]*"
             value={digit}
             onChange={(e) => handleDigitChange(idx, e.target.value)}
             onKeyDown={(e) => handleKeyDown(idx, e)}
@@ -118,22 +119,28 @@ function TripleBoxRow({ onAdd }: { onAdd: (number: string, quantity: number) => 
         ))}
       </div>
 
-      <div className="flex items-center gap-0.5 shrink-0">
-        <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" onClick={() => setQuantity(Math.max(1, quantity - 1))}>
+      <div className="flex items-center gap-1 shrink-0">
+        <button
+          onClick={() => setQuantity(Math.max(1, quantity - 1))}
+          className="w-9 h-9 rounded-lg border flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors touch-target"
+        >
           <Minus className="w-3.5 h-3.5" />
-        </Button>
-        <span className="w-7 text-center font-bold text-sm">{quantity}</span>
-        <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" onClick={() => setQuantity(quantity + 1)}>
+        </button>
+        <span className="w-7 text-center font-bold text-sm tabular-nums">{quantity}</span>
+        <button
+          onClick={() => setQuantity(quantity + 1)}
+          className="w-9 h-9 rounded-lg border flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors touch-target"
+        >
           <Plus className="w-3.5 h-3.5" />
-        </Button>
+        </button>
       </div>
 
       <Button
-        onClick={() => handleAdd(true)}
+        onClick={handleAdd}
         disabled={!isComplete}
         size="sm"
         variant="outline"
-        className="shrink-0 rounded-xl h-9 px-3 font-bold text-lottery-box border-lottery-box/30 hover:bg-lottery-box hover:text-white"
+        className="shrink-0 rounded-xl h-10 px-3 font-bold text-lottery-box border-lottery-box/30 hover:bg-lottery-box hover:text-white touch-target"
       >
         BOX
       </Button>
