@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -13,6 +14,7 @@ export default function AdminPayments() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   const { data: requests, isLoading } = useQuery({
     queryKey: ['admin-payment-requests'],
@@ -24,27 +26,51 @@ export default function AdminPayments() {
   });
 
   const handleApprove = async (request: any) => {
+    if (processingId) return;
+    setProcessingId(request.id);
     try {
-      await supabase.from('payment_requests').update({ status: 'approved', processed_by: user?.id, processed_at: new Date().toISOString() }).eq('id', request.id);
-      const { data: wallet } = await supabase.from('wallets').select('balance').eq('user_id', request.user_id).single();
-      if (!wallet) throw new Error('Wallet not found');
-      let newBalance = Number(wallet.balance) + (request.type === 'deposit' ? Number(request.amount) : -Number(request.amount));
-      await supabase.from('wallets').update({ balance: newBalance }).eq('user_id', request.user_id);
-      await supabase.from('transactions').insert({ user_id: request.user_id, type: request.type, amount: request.type === 'deposit' ? Number(request.amount) : -Number(request.amount), balance_after: newBalance, reference_id: request.id, description: `${request.type} approved` });
-      toast({ title: 'Request Approved' });
+      const { error: updateErr } = await supabase.from('payment_requests').update({ status: 'approved', processed_by: user?.id, processed_at: new Date().toISOString() }).eq('id', request.id);
+      if (updateErr) throw updateErr;
+
+      const { data: wallet, error: walletErr } = await supabase.from('wallets').select('balance').eq('user_id', request.user_id).single();
+      if (walletErr || !wallet) throw new Error('Wallet not found');
+
+      const newBalance = Number(wallet.balance) + (request.type === 'deposit' ? Number(request.amount) : -Number(request.amount));
+
+      const { error: walletUpdateErr } = await supabase.from('wallets').update({ balance: newBalance }).eq('user_id', request.user_id);
+      if (walletUpdateErr) throw walletUpdateErr;
+
+      const { error: txErr } = await supabase.from('transactions').insert({
+        user_id: request.user_id,
+        type: request.type === 'deposit' ? 'deposit' : 'withdrawal',
+        amount: Number(request.amount),
+        balance_after: newBalance,
+        reference_id: request.id,
+        description: `${request.type} approved by admin`,
+      });
+      if (txErr) throw txErr;
+
+      toast({ title: 'Request Approved', description: `₹${request.amount} ${request.type} approved.` });
       queryClient.invalidateQueries({ queryKey: ['admin-payment-requests'] });
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Error', description: error.message });
+    } finally {
+      setProcessingId(null);
     }
   };
 
   const handleReject = async (request: any) => {
+    if (processingId) return;
+    setProcessingId(request.id);
     try {
-      await supabase.from('payment_requests').update({ status: 'rejected', processed_by: user?.id, processed_at: new Date().toISOString() }).eq('id', request.id);
+      const { error } = await supabase.from('payment_requests').update({ status: 'rejected', processed_by: user?.id, processed_at: new Date().toISOString() }).eq('id', request.id);
+      if (error) throw error;
       toast({ title: 'Request Rejected' });
       queryClient.invalidateQueries({ queryKey: ['admin-payment-requests'] });
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Error', description: error.message });
+    } finally {
+      setProcessingId(null);
     }
   };
 
@@ -69,8 +95,12 @@ export default function AdminPayments() {
                     <TableCell className="text-sm">{format(new Date(r.requested_at), 'MMM d, h:mm a')}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <Button size="sm" className="bg-success hover:bg-success/90" onClick={() => handleApprove(r)}><CheckCircle className="w-4 h-4 mr-1" />Approve</Button>
-                        <Button size="sm" variant="destructive" onClick={() => handleReject(r)}><XCircle className="w-4 h-4 mr-1" />Reject</Button>
+                        <Button size="sm" className="bg-success hover:bg-success/90" disabled={!!processingId} onClick={() => handleApprove(r)}>
+                          {processingId === r.id ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-1" />}Approve
+                        </Button>
+                        <Button size="sm" variant="destructive" disabled={!!processingId} onClick={() => handleReject(r)}>
+                          {processingId === r.id ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <XCircle className="w-4 h-4 mr-1" />}Reject
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
