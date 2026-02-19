@@ -199,7 +199,7 @@
 
   /* Number input for bets — touch-friendly */
   .digit-input {
-    @apply w-12 h-14 text-center text-xl font-bold rounded-xl border-2 border-border bg-background
+    @apply w-10 h-11 text-center text-lg font-bold rounded-xl border-2 border-border bg-background
            focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none;
     -webkit-appearance: none;
     -moz-appearance: textfield;

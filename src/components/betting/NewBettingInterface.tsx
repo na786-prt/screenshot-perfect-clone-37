@@ -121,8 +121,6 @@ export function NewBettingInterface({
             winAmount={Number(lottery.triple_digit_win_amount)}
             rows={tripleRows} digitCount={3}
             onAdd={(pos, num, qty) => handleAddBet('triple', pos, num, qty)}
-            showBox
-            onBoxAdd={(num, qty) => handleAddBet('triple', 'ABC', num, qty, true)}
           />
 
           {/* Spacer for FAB on mobile */}
