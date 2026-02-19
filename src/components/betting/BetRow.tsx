@@ -46,14 +46,16 @@ export function BetRow({ positions, digitCount, onAdd, positionColors }: BetRowP
   const colors = positionColors || defaultColors;
 
   return (
-    <div className="flex items-center gap-2 py-2">
-      {/* Position badges */}
-      <div className="flex gap-0.5 shrink-0">
+    <div className="flex items-center gap-1.5 py-2">
+      {/* Position badges - compact pill on mobile */}
+      <div className="flex shrink-0">
         {positions.map((pos, idx) => (
           <div
             key={pos}
             className={cn(
-              "w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-xs touch-target",
+              "h-7 px-2 flex items-center justify-center text-white font-bold text-xs",
+              idx === 0 ? "rounded-l-lg" : "",
+              idx === positions.length - 1 ? "rounded-r-lg" : "",
               colors[idx] || colors[0]
             )}
           >
@@ -63,7 +65,7 @@ export function BetRow({ positions, digitCount, onAdd, positionColors }: BetRowP
       </div>
 
       {/* Digit inputs */}
-      <div className="flex gap-1.5 flex-1 justify-center">
+      <div className="flex gap-1 flex-1 justify-center">
         {digits.map((digit, idx) => (
           <input
             key={idx}
@@ -82,19 +84,19 @@ export function BetRow({ positions, digitCount, onAdd, positionColors }: BetRowP
       </div>
 
       {/* Quantity */}
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-0.5 shrink-0">
         <button
           onClick={() => setQuantity(Math.max(1, quantity - 1))}
-          className="w-9 h-9 rounded-lg border flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors touch-target"
+          className="w-8 h-8 rounded-lg border flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors"
         >
-          <Minus className="w-3.5 h-3.5" />
+          <Minus className="w-3 h-3" />
         </button>
-        <span className="w-7 text-center font-bold text-sm tabular-nums">{quantity}</span>
+        <span className="w-6 text-center font-bold text-sm tabular-nums">{quantity}</span>
         <button
           onClick={() => setQuantity(quantity + 1)}
-          className="w-9 h-9 rounded-lg border flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors touch-target"
+          className="w-8 h-8 rounded-lg border flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors"
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Plus className="w-3 h-3" />
         </button>
       </div>
 
@@ -103,7 +105,7 @@ export function BetRow({ positions, digitCount, onAdd, positionColors }: BetRowP
         onClick={handleAdd}
         disabled={!isComplete}
         size="sm"
-        className="shrink-0 rounded-xl h-10 px-4 font-bold touch-target"
+        className="shrink-0 rounded-xl h-8 px-3 font-bold text-xs"
       >
         Add
       </Button>
