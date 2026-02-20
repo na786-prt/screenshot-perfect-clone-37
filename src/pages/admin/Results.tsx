@@ -35,8 +35,8 @@ export default function AdminResults() {
         .lt('draw_time', new Date().toISOString())
         .order('draw_time', { ascending: false });
       if (error) throw error;
-      // Filter lotteries that don't have results yet
-      return data?.filter(l => !l.lottery_results) || [];
+      // Filter lotteries that don't have results yet (empty array means no results)
+      return data?.filter(l => !l.lottery_results || (Array.isArray(l.lottery_results) && l.lottery_results.length === 0)) || [];
     },
   });
 
