@@ -35,6 +35,10 @@ export default function Index() {
     setCartItems(prev => prev.filter(item => item.id !== id));
   };
 
+  const handleUpdateCartQuantity = (id: string, quantity: number) => {
+    setCartItems(prev => prev.map(item => item.id === id ? { ...item, quantity } : item));
+  };
+
   const handleCheckout = async () => {
     if (!user || !selectedLottery || cartItems.length === 0) return;
     setIsPlacingBets(true);
@@ -135,6 +139,7 @@ export default function Index() {
             cartItems={cartItems}
             onAddToCart={handleAddToCart}
             onRemoveFromCart={handleRemoveFromCart}
+            onUpdateCartQuantity={handleUpdateCartQuantity}
             onCheckout={handleCheckout}
             isCheckingOut={isPlacingBets}
             walletBalance={Number(balance)}

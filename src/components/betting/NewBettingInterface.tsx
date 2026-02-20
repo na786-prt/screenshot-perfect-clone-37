@@ -34,13 +34,14 @@ interface NewBettingInterfaceProps {
   cartItems: CartItem[];
   onAddToCart: (item: CartItem) => void;
   onRemoveFromCart: (id: string) => void;
+  onUpdateCartQuantity: (id: string, quantity: number) => void;
   onCheckout: () => void;
   isCheckingOut: boolean;
   walletBalance: number;
 }
 
 export function NewBettingInterface({
-  lottery, cartItems, onAddToCart, onRemoveFromCart, onCheckout, isCheckingOut, walletBalance,
+  lottery, cartItems, onAddToCart, onRemoveFromCart, onUpdateCartQuantity, onCheckout, isCheckingOut, walletBalance,
 }: NewBettingInterfaceProps) {
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -134,6 +135,7 @@ export function NewBettingInterface({
               <BetCart
                 items={cartItems}
                 onRemoveItem={onRemoveFromCart}
+                onUpdateQuantity={onUpdateCartQuantity}
                 onCheckout={onCheckout}
                 isLoading={isCheckingOut}
                 walletBalance={walletBalance}
@@ -162,6 +164,7 @@ export function NewBettingInterface({
               <BetCart
                 items={cartItems}
                 onRemoveItem={onRemoveFromCart}
+                onUpdateQuantity={onUpdateCartQuantity}
                 onCheckout={onCheckout}
                 isLoading={isCheckingOut}
                 walletBalance={walletBalance}

@@ -45,15 +45,18 @@ export function BetRow({ positions, digitCount, onAdd, positionColors }: BetRowP
   const defaultColors = ['bg-lottery-single', 'bg-lottery-double', 'bg-lottery-triple'];
   const colors = positionColors || defaultColors;
 
+  const isCompact = digitCount === 3;
+
   return (
-    <div className="flex items-center gap-1.5 py-2">
-      {/* Position badges - compact pill on mobile */}
+    <div className={cn("flex items-center py-2", isCompact ? "gap-1" : "gap-1.5")}>
+      {/* Position badges */}
       <div className="flex shrink-0">
         {positions.map((pos, idx) => (
           <div
             key={pos}
             className={cn(
-              "h-7 px-2 flex items-center justify-center text-white font-bold text-xs",
+              "h-7 flex items-center justify-center text-white font-bold",
+              isCompact ? "w-6 text-[10px]" : "px-2 text-xs",
               idx === 0 ? "rounded-l-lg" : "",
               idx === positions.length - 1 ? "rounded-r-lg" : "",
               colors[idx] || colors[0]
@@ -65,7 +68,7 @@ export function BetRow({ positions, digitCount, onAdd, positionColors }: BetRowP
       </div>
 
       {/* Digit inputs */}
-      <div className="flex gap-1 flex-1 justify-center">
+      <div className={cn("flex flex-1 justify-center", isCompact ? "gap-0.5" : "gap-1")}>
         {digits.map((digit, idx) => (
           <input
             key={idx}
@@ -76,7 +79,7 @@ export function BetRow({ positions, digitCount, onAdd, positionColors }: BetRowP
             value={digit}
             onChange={(e) => handleDigitChange(idx, e.target.value)}
             onKeyDown={(e) => handleKeyDown(idx, e)}
-            className="digit-input"
+            className={cn("digit-input", isCompact && "w-8 h-10 text-base")}
             maxLength={1}
             placeholder="·"
           />
@@ -87,14 +90,14 @@ export function BetRow({ positions, digitCount, onAdd, positionColors }: BetRowP
       <div className="flex items-center gap-0.5 shrink-0">
         <button
           onClick={() => setQuantity(Math.max(1, quantity - 1))}
-          className="w-8 h-8 rounded-lg border flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors"
+          className={cn("rounded-lg border flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors", isCompact ? "w-7 h-7" : "w-8 h-8")}
         >
           <Minus className="w-3 h-3" />
         </button>
-        <span className="w-6 text-center font-bold text-sm tabular-nums">{quantity}</span>
+        <span className="w-5 text-center font-bold text-sm tabular-nums">{quantity}</span>
         <button
           onClick={() => setQuantity(quantity + 1)}
-          className="w-8 h-8 rounded-lg border flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors"
+          className={cn("rounded-lg border flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors", isCompact ? "w-7 h-7" : "w-8 h-8")}
         >
           <Plus className="w-3 h-3" />
         </button>
@@ -105,7 +108,7 @@ export function BetRow({ positions, digitCount, onAdd, positionColors }: BetRowP
         onClick={handleAdd}
         disabled={!isComplete}
         size="sm"
-        className="shrink-0 rounded-xl h-8 px-3 font-bold text-xs"
+        className={cn("shrink-0 rounded-xl h-8 font-bold text-xs", isCompact ? "px-2" : "px-3")}
       >
         Add
       </Button>
